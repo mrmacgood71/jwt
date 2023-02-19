@@ -5,11 +5,16 @@ import it.macgood.authjwt.config.JwtService;
 import it.macgood.authjwt.user.Role;
 import it.macgood.authjwt.user.User;
 import it.macgood.authjwt.user.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.sql.SQLException;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +29,10 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
 
-    public AuthenticationResponse register(RegisterRequest request) {
+    public AuthenticationResponse register(
+            HttpServletResponse response,
+            RegisterRequest request
+    ) throws IOException {
 
         var user = User.builder()
                 .firstname(request.getFirstname())
@@ -34,7 +42,13 @@ public class AuthenticationService {
                 .role(Role.USER)
                 .build();
 
-        repository.save(user);
+        try {
+            repository.save(user);
+        } catch (RuntimeException e) {
+            response.sendRedirect("http://localhost:8080/api/v1/");
+        }
+
+
         var jwtToken = jwtService.generateToken(user);
 
         return AuthenticationResponse
@@ -48,7 +62,6 @@ public class AuthenticationService {
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()
-
                 )
         );
 
@@ -56,6 +69,7 @@ public class AuthenticationService {
                 .orElseThrow();
         var jwtToken = jwtService.generateToken(user);
 
+        System.out.println(jwtToken);
         return AuthenticationResponse
                 .builder()
                 .token(jwtToken)

@@ -1,5 +1,4 @@
 
-
 spring:
   datasource:
     url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
@@ -15,3 +14,6 @@ spring:
         format_sql: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+client-id: ${CLIENT_ID}
+client-secret: ${CLIENT_SERCRET}
